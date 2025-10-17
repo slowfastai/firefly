@@ -1,0 +1,10 @@
+{
+  "name": "@app/backend",
+  "private": true,
+  "scripts": {
+    "dev": "python scripts/run_backend.py",
+    "build": "echo '(python backend has no build step)'",
+    "lint": "ruff check . && black --check .",
+    "format": "ruff check . --fix && black ."
+  }
+}

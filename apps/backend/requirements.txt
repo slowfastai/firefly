@@ -1,0 +1,14 @@
+openai
+tqdm
+nltk
+rank-bm25
+langid
+loguru
+beautifulsoup4
+pdfplumber
+chardet
+browser-cookie3
+lxml
+pycryptodomex
+secretstorage
+selenium
