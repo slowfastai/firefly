@@ -220,13 +220,16 @@ const SearchBox = () => {
       const text = query.trim()
       if (!text) return
       try {
+        // Clear input immediately so the clarification text doesn't linger
+        setQuery('')
         await window.ipcRenderer.invoke('send-clarification', { sessionId, text })
         setEvents(prev => [...prev, { type: 'clarification_sent', payload: text }])
         setClarPrompt(null)
         setClarText('')
-        setQuery('')
       } catch (e) {
         setEvents(prev => [...prev, { type: 'clarification-error', payload: e instanceof Error ? e.message : 'Failed to send clarification' }])
+        // Still clear local input on error to avoid stale text
+        setQuery('')
       }
       return
     }
@@ -242,6 +245,9 @@ const SearchBox = () => {
       setStatus({ stage: 'started', message: 'Starting…' })
       const sid = (globalThis.crypto as any)?.randomUUID?.() || String(Date.now())
       setSessionId(sid)
+      // Clear the input immediately on submit so the text
+      // does not linger in the search box while the request runs
+      setQuery('')
       const response: { sessionId: string; result?: any } | undefined = await window.ipcRenderer.invoke('submit-query', {
         engine,
         model,
@@ -253,7 +259,6 @@ const SearchBox = () => {
         cancelledSidRef.current.delete(sid)
         return
       }
-      setQuery('')
       setEngineMenuOpen(false)
       setModelMenuOpen(false)
       if (response?.sessionId === sid) {
@@ -266,6 +271,8 @@ const SearchBox = () => {
     } catch (error) {
       console.error('Failed to submit request', error)
       setErrorMessage(error instanceof Error ? error.message : 'Failed to submit request')
+      // Ensure the input is cleared even if the request fails
+      setQuery('')
     }
   }
 
