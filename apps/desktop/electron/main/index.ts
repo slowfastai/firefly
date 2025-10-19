@@ -49,6 +49,28 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html')
 // Track running sessions so we can cancel
 const sessions = new Map<string, ChildProcess>()
 
+// Resolve a Python executable that respects conda/venv when present
+function resolvePythonExecutable(): string {
+  const isWin = process.platform === 'win32'
+  const bin = (p: string) => path.join(p, isWin ? 'python.exe' : path.join('bin', 'python'))
+
+  const candidates = [
+    process.env.PYTHON_EXECUTABLE,
+    process.env.PYTHON,
+    process.env.CONDA_PREFIX ? bin(process.env.CONDA_PREFIX) : undefined,
+    process.env.VIRTUAL_ENV ? bin(process.env.VIRTUAL_ENV) : undefined,
+  ].filter(Boolean) as string[]
+
+  for (const c of candidates) {
+    try {
+      if (fs.existsSync(c)) return c
+    } catch {}
+  }
+
+  // Fall back to PATH lookups
+  return isWin ? 'python' : 'python3'
+}
+
 async function createWindow() {
   win = new BrowserWindow({
     title: 'Main window',
@@ -154,7 +176,8 @@ ipcMain.handle('submit-query', async (evt, payload: { engine: string; model?: st
     try { fs.mkdirSync(cancelDir, { recursive: true }) } catch {}
     try { if (fs.existsSync(cancelFile)) fs.rmSync(cancelFile) } catch {}
 
-    const child = spawn('python3', [scriptPath, JSON.stringify({ ...pythonPayload, cancel_file: cancelFile })], {
+    const pythonExe = resolvePythonExecutable()
+    const child = spawn(pythonExe, [scriptPath, JSON.stringify({ ...pythonPayload, cancel_file: cancelFile })], {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: true, // put child in its own process group
       env: { ...process.env, DR_CANCEL_FILE: cancelFile, DR_SESSION_ID: sessionId },
