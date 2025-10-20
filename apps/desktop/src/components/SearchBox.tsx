@@ -312,15 +312,33 @@ const SearchBox = () => {
     }
   }
 
+  const formRef = useRef<HTMLFormElement | null>(null)
+
   return (
     <section className="search-wrapper" aria-label="Deep Research prompt" style={{ paddingBottom: !idle ? 120 : 0 }}>
-      <form className={`search-shell${!idle ? ' fixed-bottom' : ''}`} onSubmit={handleSubmit}>
+      <form ref={formRef} className={`search-shell${!idle ? ' fixed-bottom' : ''}`} onSubmit={handleSubmit}>
         <input
           className="search-input"
           placeholder={clarPrompt ? 'Please provide more details…' : 'Ask anything...'}
           value={query}
           onChange={event => setQuery(event.target.value)}
           aria-label={clarPrompt ? 'Provide clarification' : 'Ask a question'}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              const f = formRef.current as any
+              if (f && typeof f.requestSubmit === 'function') {
+                f.requestSubmit()
+              } else {
+                const btn = document.createElement('button')
+                btn.type = 'submit'
+                btn.style.display = 'none'
+                formRef.current?.appendChild(btn)
+                btn.click()
+                formRef.current?.removeChild(btn)
+              }
+            }
+          }}
         />
         <div className="search-inline-actions">
           <div className="menu-selector engine-selector" ref={engineMenuRef}>
