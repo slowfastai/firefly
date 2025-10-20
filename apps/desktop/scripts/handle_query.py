@@ -15,15 +15,10 @@ from pathlib import Path
 # Resolve repo root (apps/desktop/scripts -> desktop -> apps -> repo root)
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
-# Ensure backend scripts are importable (run_backend.py lives here)
-BACKEND_SCRIPTS = REPO_ROOT / "apps" / "backend" / "scripts"
-if str(BACKEND_SCRIPTS) not in sys.path:
-    sys.path.insert(0, str(BACKEND_SCRIPTS))
-
-# Backward-compat: also try legacy path if present
-LEGACY_DR_SCRIPTS = REPO_ROOT / "deepresearch" / "scripts"
-if LEGACY_DR_SCRIPTS.exists():
-    sys.path.insert(0, str(LEGACY_DR_SCRIPTS))
+# Ensure backend sources are importable (run_backend.py lives here)
+BACKEND_SRC = REPO_ROOT / "apps" / "backend" / "src"
+if str(BACKEND_SRC) not in sys.path:
+    sys.path.insert(0, str(BACKEND_SRC))
 
 
 def main() -> None:

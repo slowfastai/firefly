@@ -18,10 +18,10 @@ from urllib.parse import quote_plus, urlparse, parse_qs
 from loguru import logger
 from bs4 import BeautifulSoup
 
-# Add the scripts directory to the Python path for imports
-scripts_dir = Path(__file__).parent.parent
-if str(scripts_dir) not in sys.path:
-    sys.path.insert(0, str(scripts_dir))
+# Add the src directory to the Python path for imports
+src_dir = Path(__file__).parent.parent
+if str(src_dir) not in sys.path:
+    sys.path.insert(0, str(src_dir))
 
 from utils.user_agent import get_browser_user_agent
 from browser_cookies import load_cookies
@@ -102,7 +102,9 @@ def filter_search_result(link: str, include_google_links: bool = False) -> str |
     """
     try:
         # Decode hidden URLs.
-        if link.startswith("/url?"):  # If the link starts with '/url?', extract the 'q' parameter from the query string
+        if link.startswith(
+            "/url?"
+        ):  # If the link starts with '/url?', extract the 'q' parameter from the query string
             o = urlparse(link, "http")
             link = parse_qs(o.query).get("q")[0]
 

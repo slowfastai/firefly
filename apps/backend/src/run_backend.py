@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 from dataclasses import dataclass
 from typing import Callable, Any, Optional, Mapping, Union
 
-# Add the scripts directory to the Python path
-scripts_dir = Path(__file__).parent
-sys.path.insert(0, str(scripts_dir))
+# Add the src directory to the Python path
+src_dir = Path(__file__).parent
+sys.path.insert(0, str(src_dir))
 
 import numpy as np
 from loguru import logger
