@@ -12,7 +12,7 @@ import signal
 # Allow importing from the monorepo
 from pathlib import Path
 
-# Resolve repo root (apps/desktop/scripts -> desktop -> apps -> repo root)
+# Resolve repo root (apps/desktop/src -> desktop -> apps -> repo root)
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 # Ensure backend sources are importable (run_backend.py lives here)
