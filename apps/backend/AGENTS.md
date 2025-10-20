@@ -1,8 +1,8 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `scripts/`: Main code. Key modules: `search/` (engines + extractors), `prompts/`, `evaluate/`, `utils/`, `browser_cookies/`.
-- `scripts/run.py`: Entry point for report generation and deep web exploration.
+- `src/`: Main code. Key modules: `search/` (engines + extractors), `prompts/`, `evaluate/`, `utils/`, `browser_cookies/`.
+- `src/run.py`: Entry point for report generation and deep web exploration.
 - `data/`, `outputs/`, `logs/`, `cache/`: Input, artifacts, run logs, and cached search/url content.
 - `.env`: Local secrets and runtime config (not committed).
 
@@ -10,9 +10,9 @@
 - Environment: `conda create -n webthinker python=3.11 && conda activate webthinker`
 - Install: `pip install -r requirements.txt`
 - Run (single question):
-  - `python scripts/run.py --single_question "Your question" --search_engine "serper|cookie_google" --api_base_url "..." --model_name "QwQ-32B"`
+  - `python src/run.py --single_question "Your question" --search_engine "serper|cookie_google" --api_base_url "..." --model_name "QwQ-32B"`
 - Evaluate reports:
-  - `python scripts/evaluate/evaluate_report.py --api-base-url "..." --api-key "..." --models "deepseek/deepseek-r1" --model-to-test-dir "outputs/your_model"`
+  - `python src/evaluate/evaluate_report.py --api-base-url "..." --api-key "..." --models "deepseek/deepseek-r1" --model-to-test-dir "outputs/your_model"`
 
 ## Coding Style & Naming Conventions
 - Python, 4-space indent, PEP 8 naming: modules/functions `snake_case`, classes `PascalCase`, constants `UPPER_SNAKE_CASE`.
@@ -21,8 +21,8 @@
 - Paths are relative to repo root; prefer `pathlib.Path`.
 
 ## Testing Guidelines
-- No formal test harness yet. Validate changes with small end-to-end runs using `scripts/run_backend.py` and targeted utilities (e.g., `scripts/utils/test_webparser.py`).
-- Add lightweight tests/scripts next to the code under `scripts/**/test_*.py` and keep them deterministic (mock APIs when possible).
+- No formal test harness yet. Validate changes with small end-to-end runs using `src/run_backend.py` and targeted utilities (e.g., `src/utils/test_webparser.py`).
+- Add lightweight tests next to the code under `src/**/test_*.py` and keep them deterministic (mock APIs when possible).
 - When adding tests, ensure they run without network by default or guard with flags.
 
 ## Commit & Pull Request Guidelines

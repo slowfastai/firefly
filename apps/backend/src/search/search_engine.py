@@ -348,7 +348,9 @@ async def extract_text_from_url_async(
                     or len(html.split()) < 20
                 )
                 if has_error:
-                    return f"[Error] error: Content too short or contains error indicators"
+                    return (
+                        f"[Error] error: Content too short or contains error indicators"
+                    )
 
                 try:
                     soup = BeautifulSoup(html, "lxml")
