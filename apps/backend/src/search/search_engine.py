@@ -8,8 +8,10 @@ import aiohttp
 import asyncio
 import chardet
 import requests
+import unicodedata
 from io import BytesIO
 from pathlib import Path
+from typing import Iterable, Set
 from urllib.parse import urlparse
 from requests.exceptions import Timeout
 
@@ -70,9 +72,43 @@ INVALID_SEARCH_QUERY = [
 ]
 
 
-def remove_punctuation(text: str) -> str:
-    """Remove punctuation from the text."""
-    return text.translate(str.maketrans("", "", string.punctuation))
+def remove_punctuation(text: str, keep: Iterable[str] | None = None) -> str:
+    """
+    Remove all Unicode punctuation and symbols (including CJK punctuation and ASCII symbols).
+    Use `keep` to specify characters that should not be removed.
+    Example: `keep = {"-", "."}` preserves the hyphen and period.
+
+    Notes:
+    - Preserves the original characters in output; no width conversion is applied.
+    - `keep` matches both the original characters and their NFKC-normalized forms.
+    """
+    # Build both original and normalized keep sets so we can preserve
+    # characters exactly while still recognizing compatibility forms.
+    keep_orig: Set[str] = set(keep or [])
+    keep_norm: Set[str] = set()
+    for item in keep or []:
+        normalized = unicodedata.normalize("NFKC", item)
+        for ch in normalized:
+            keep_norm.add(ch)
+
+    def is_punct_or_symbol(ch: str) -> bool:
+        # Remove both punctuation ('P*') and symbol ('S*') categories.
+        # P*: Pc, Pd, Pe, Pf, Pi, Po, Ps
+        # S*: Sc, Sk, Sm, So (currency, modifier, math, other symbols)
+        cat = unicodedata.category(ch)
+        return cat.startswith("P") or cat.startswith("S")
+
+    result_chars = []
+    for ch in text:
+        # Check if this character (or its normalized form) is in keep.
+        if (ch in keep_orig) or any(
+            c in keep_norm for c in unicodedata.normalize("NFKC", ch)
+        ):
+            result_chars.append(ch)
+            continue
+        if not is_punct_or_symbol(ch):
+            result_chars.append(ch)
+    return "".join(result_chars)
 
 
 def f1_score(true_set: set, pred_set: set) -> float:
