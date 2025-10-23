@@ -630,6 +630,17 @@ async def handle_search_query_response(context: ResponseContext):
     # )
     search_intent, search_query = extract_search_intent_and_query(context.response)
     logger.info(f"Search intent: {search_intent}, search query: {search_query}")
+    # Inform UI that we are about to perform a web search
+    if context.emit and search_query:
+        try:
+            context.emit(
+                {
+                    "type": "status",
+                    "payload": {"stage": "search", "message": "Searching web..."},
+                }
+            )
+        except Exception:
+            pass
     if context.emit and search_query:
         try:
             context.emit(
