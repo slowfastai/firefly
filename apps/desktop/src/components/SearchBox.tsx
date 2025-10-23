@@ -201,6 +201,21 @@ const SearchBox = () => {
           });
         } else if (evt.type === "started") {
           setStatus({ stage: "started", message: "Starting…" });
+        } else if (evt.type === "reasoning") {
+          // Keep status aligned with streaming reasoning
+          setStatus((prev) =>
+            prev?.stage === "clarification" ? prev : { stage: "reasoning", message: "Reasoning…" },
+          );
+        } else if (evt.type === "search_result") {
+          // Reflect receipt of search results
+          setStatus((prev) =>
+            prev?.stage === "clarification" ? prev : { stage: "search", message: "Analyzing search results…" },
+          );
+        } else if (evt.type === "outline_update" || evt.type === "write_section_plan") {
+          // Indicate writing phase progress
+          setStatus((prev) =>
+            prev?.stage === "clarification" ? prev : { stage: "writing", message: "Writing report…" },
+          );
         } else if (evt.type === "final") {
           setStatus(null);
           setSessionId(null);
@@ -225,6 +240,8 @@ const SearchBox = () => {
           const text =
             msg || "Please provide additional details to clarify your request.";
           setClarPrompt(text);
+          // During clarification, mark an awaiting status so users understand why progression pauses
+          setStatus({ stage: "clarification", message: "Awaiting clarification…" });
           setEvents((prev) => [
             ...prev,
             { type: "clarification_request", payload: text },
@@ -243,6 +260,8 @@ const SearchBox = () => {
               { type: "clarified_query", payload: rewritten },
             ]);
           }
+          // Resume reasoning after clarification has been processed
+          setStatus({ stage: "reasoning", message: "Reasoning…" });
         } else if (evt.type) {
           setEvents((prev) => [
             ...prev,
