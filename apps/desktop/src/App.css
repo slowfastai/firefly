@@ -69,7 +69,10 @@
   color: #6b7280;
   padding: 0;
   cursor: pointer;
-  transition: transform 120ms ease, background-color 160ms ease, color 160ms ease;
+  transition:
+    transform 120ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 .search-icon-btn {
@@ -173,7 +176,7 @@
 }
 
 .menu-dropdown::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -6px;
   right: 18px;
@@ -255,7 +258,7 @@
   padding: 0.1rem 0.45rem;
   border-radius: 999px;
   background: #fef3c7; /* amber-100 */
-  color: #b45309;      /* amber-700 */
+  color: #b45309; /* amber-700 */
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -271,7 +274,7 @@
 }
 
 .menu-toggle::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 2px;
   left: 2px;
@@ -311,7 +314,9 @@
 
 .search-shell:focus-within {
   border-color: var(--border-strong);
-  box-shadow: 0 0 0 3px var(--surface-hover), var(--shadow);
+  box-shadow:
+    0 0 0 3px var(--surface-hover),
+    var(--shadow);
 }
 
 .search-input::placeholder {
@@ -337,7 +342,7 @@
 
 .search-output.error {
   background: #fee2e2; /* red-100 */
-  color: #b91c1c;      /* red-700 */
+  color: #b91c1c; /* red-700 */
   box-shadow: inset 0 0 0 1px #fecaca; /* red-200 */
 }
 
@@ -350,7 +355,7 @@
 
 .search-output pre {
   margin: 0;
-  font-family: 'JetBrains Mono', 'Fira Code', Menlo, Consolas, monospace;
+  font-family: "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
   font-size: 0.85rem;
   white-space: pre-wrap;
   word-break: break-word;
@@ -408,7 +413,10 @@
   align-items: center;
   gap: 0.15rem;
   cursor: pointer;
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 120ms ease;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 120ms ease;
 }
 
 .quick-action small {

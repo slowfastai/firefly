@@ -23,6 +23,8 @@ from search.search_engine import (
     extract_snippet_with_context,
     fetch_page_content_async,
     cookie_google_search,
+    duckduckgo_search,
+    google_serper_search,
     ERROR_INDICATORS,
     INVALID_SEARCH_QUERY,
 )
@@ -47,7 +49,11 @@ from browser_cookies import load_cookies, DeepResearchCookieJar
 from utils.report_cli import parse_args, get_logger, set_seed, LLMResponse
 from utils.async_llm_manager import create_llm_client, LLMClient
 
-load_dotenv()
+# Load environment from repo root .env and backend/.env for reliability
+load_dotenv()  # standard .env in CWD / parents, if present
+backend_env = Path(__file__).resolve().parents[1] / ".env"
+if backend_env.exists():
+    load_dotenv(backend_env, override=False)
 
 
 # ---- Cooperative cancel helpers (desktop integration) ----
@@ -672,6 +678,8 @@ async def handle_search_query_response(context: ResponseContext):
                 search_result_urls = cookie_google_search(
                     search_query, context.user_agent, context.cookie_jar
                 )
+            elif context.args.search_engine == "duckduckgo":
+                search_result_urls = duckduckgo_search(search_query, context.user_agent)
             else:
                 error_message = f"Invalid search engine: {context.args.search_engine}, not supported yet."
                 logger.error(error_message)
@@ -682,7 +690,45 @@ async def handle_search_query_response(context: ResponseContext):
             logger.info(
                 f"Error during search '{search_query}' using {context.args.search_engine}: {e}"
             )
-            search_result_urls = []
+            # First fallback to DuckDuckGo (no cookie), then Serper if available
+            try:
+                search_result_urls = duckduckgo_search(search_query, context.user_agent)
+                if len(search_result_urls) > 0:
+                    context.web_cache.set_search_urls(search_query, search_result_urls)
+                    logger.info(
+                        f"Used DuckDuckGo fallback for '{search_query}', URLs: {search_result_urls}"
+                    )
+                else:
+                    raise RuntimeError("DuckDuckGo returned no results")
+            except Exception as e_ddg:
+                logger.info(f"DuckDuckGo fallback failed: {e_ddg}")
+                # Fallback to Serper if available
+                api_key = os.getenv("SERPER_API_KEY")
+                if api_key:
+                    try:
+                        serper_json = google_serper_search(search_query, api_key)
+                        # Prefer organic results
+                        organic = (
+                            serper_json.get("organic", [])
+                            if isinstance(serper_json, dict)
+                            else []
+                        )
+                        search_result_urls = [
+                            item.get("link") for item in organic if item.get("link")
+                        ][:10]
+                        search_result_urls = [u for u in search_result_urls if u]
+                        logger.info(
+                            f"Used Serper fallback for '{search_query}', URLs: {search_result_urls}"
+                        )
+                        if len(search_result_urls) > 0:
+                            context.web_cache.set_search_urls(
+                                search_query, search_result_urls
+                            )
+                    except Exception as e2:
+                        logger.info(f"Serper fallback failed: {e2}")
+                        search_result_urls = []
+                else:
+                    search_result_urls = []
 
     logger.info(
         f"Searched for '{search_query}' with {context.args.search_engine}; URLs: {search_result_urls}"
@@ -1049,16 +1095,65 @@ async def generate_deep_web_explorer(
                         search_result_urls = cookie_google_search(
                             new_search_query, user_agent, cookie_jar
                         )
+                    elif args.search_engine == "duckduckgo":
+                        search_result_urls = duckduckgo_search(
+                            new_search_query, user_agent
+                        )
+                    else:
+                        logger.error(f"Invalid search engine: {args.search_engine}")
+                        search_result_urls = []
+                    if len(search_result_urls) > 0:
+                        web_cache.set_search_urls(new_search_query, search_result_urls)
+                except Exception as e:
+                    logger.info(f"Error during search query '{new_search_query}': {e}")
+                    # First fallback to DuckDuckGo
+                    try:
+                        search_result_urls = duckduckgo_search(
+                            new_search_query, user_agent
+                        )
                         if len(search_result_urls) > 0:
                             web_cache.set_search_urls(
                                 new_search_query, search_result_urls
                             )
-                    else:
-                        logger.error(f"Invalid search engine: {args.search_engine}")
-                        search_result_urls = []
-                except Exception as e:
-                    logger.info(f"Error during search query '{new_search_query}': {e}")
-                    search_result_urls = []
+                            logger.info(
+                                f"Used DuckDuckGo fallback for '{new_search_query}', URLs: {search_result_urls}"
+                            )
+                        else:
+                            raise RuntimeError("DuckDuckGo returned no results")
+                    except Exception as e_ddg:
+                        logger.info(f"DuckDuckGo fallback failed: {e_ddg}")
+                        # Fallback to Serper if available
+                        api_key = os.getenv("SERPER_API_KEY")
+                        if api_key:
+                            try:
+                                serper_json = google_serper_search(
+                                    new_search_query, api_key
+                                )
+                                organic = (
+                                    serper_json.get("organic", [])
+                                    if isinstance(serper_json, dict)
+                                    else []
+                                )
+                                search_result_urls = [
+                                    item.get("link")
+                                    for item in organic
+                                    if item.get("link")
+                                ][:10]
+                                search_result_urls = [
+                                    u for u in search_result_urls if u
+                                ]
+                                if len(search_result_urls) > 0:
+                                    web_cache.set_search_urls(
+                                        new_search_query, search_result_urls
+                                    )
+                                logger.info(
+                                    f"Used Serper fallback for '{new_search_query}', URLs: {search_result_urls}"
+                                )
+                            except Exception as e2:
+                                logger.info(f"Serper fallback failed: {e2}")
+                                search_result_urls = []
+                        else:
+                            search_result_urls = []
 
             logger.info(
                 f'Searched for "{new_search_query}"; URLs: {search_result_urls}'
@@ -1681,7 +1776,7 @@ async def run_sequence(
 
     if not question:
         raise ValueError("question is required")
-
+    logger.info(f"User Question: {question}\n")
     args_ns.language = detect_language_zh_en(question)
 
     # ---------------------- Caching Mechanism ----------------------
@@ -1733,11 +1828,14 @@ async def run_sequence(
         # Query clarification (best-effort; interactive if desktop cooperates)
         try:
             query_clarification_prompt = get_query_clarification_instruction(question)
+            logger.info(f"Query Clarification Prompt:\n{query_clarification_prompt}\n")
             clarification_response = await generate_response(
                 client=reasoning_client,
                 prompt=query_clarification_prompt,
+                timeout=args_ns.search_plan_timeout,
             )
             clarification_content = clarification_response.response_text or ""
+            logger.info(f"Query Clarification Response:\n{clarification_content}\n")
             if emit and clarification_content.strip():
                 try:
                     emit(
@@ -1775,13 +1873,16 @@ async def run_sequence(
                 added_text = user_clarification
 
             if isinstance(added_text, str) and added_text.strip():
+                logger.info(f"Additional Details: {added_text}\n")
                 _original_question_before_rewrite = question
                 question_rewriting_prompt = get_query_rewriting_instruction(
                     question, added_text
                 )
+                logger.info(f"Query Rewriting Prompt:\n{question_rewriting_prompt}\n")
                 question_rewriting_response = await generate_response(
                     client=reasoning_client,
                     prompt=question_rewriting_prompt,
+                    timeout=args_ns.search_plan_timeout,
                 )
                 question = question_rewriting_response.response_text or ""
                 # TODO Maybe just append added_text to question

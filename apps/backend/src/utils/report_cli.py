@@ -81,13 +81,13 @@ def parse_args():
     parser.add_argument(
         "--timeout",
         type=int,
-        default=40,
+        default=90,
         help="Request timeout in seconds for LLM API calls. If an API call takes longer than this value, it will be considered failed and retried. Default: 20 seconds.",
     )
     parser.add_argument(
         "--search_plan_timeout",
         type=int,
-        default=40,
+        default=90,
         help="Timeout in seconds specifically for the initial search-plan LLM call, which may require longer thinking. Overrides --timeout only for that step. Default: 40",
     )
     parser.add_argument(
@@ -166,6 +166,7 @@ def parse_args():
         choices=[
             # "serper",
             "cookie_google",
+            "duckduckgo",
             # "cookie_bing",
             # "cookie_duckduckgo",
             # "cookie_baidu",

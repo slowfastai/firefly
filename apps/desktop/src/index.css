@@ -3,20 +3,26 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Inter', 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    "SF Pro Display",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
   line-height: 1.6;
   font-weight: 400;
   color-scheme: light;
   /* OpenAI-like neutral palette */
   --bg: #ffffff;
-  --text: #111827;          /* gray-900 */
-  --text-muted: #6b7280;    /* gray-500 */
-  --border: #e5e7eb;        /* gray-200 */
+  --text: #111827; /* gray-900 */
+  --text-muted: #6b7280; /* gray-500 */
+  --border: #e5e7eb; /* gray-200 */
   --border-strong: #d1d5db; /* gray-300 */
   --surface: #ffffff;
   --surface-subtle: #f9fafb; /* gray-50 */
-  --surface-hover: #f3f4f6;  /* gray-100 */
-  --accent: #111827;        /* keep accents neutral/black */
+  --surface-hover: #f3f4f6; /* gray-100 */
+  --accent: #111827; /* keep accents neutral/black */
   --shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
