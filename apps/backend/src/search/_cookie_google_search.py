@@ -11,9 +11,11 @@ The original script is licensed under the BSD 3-Clause License.
 import ssl
 import sys
 import time
+import random
 from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.parse import quote_plus, urlparse, parse_qs
+from urllib.error import HTTPError
 
 from loguru import logger
 from bs4 import BeautifulSoup
@@ -34,6 +36,13 @@ from search_engine_utils import (
     GOOGLE_URL_PARAMETERS,
     # GOOGLE_URL_HOME,
 )
+from .rate_limiter import get_google_limiter
+
+
+class SoftBlockError(Exception):
+    """Raised when Google returns a soft block / JS challenge page (HTTP 200)."""
+
+    pass
 
 
 def get_page(
@@ -58,34 +67,80 @@ def get_page(
     :raises urllib2.URLError: An exception is raised on error.
     :raises urllib2.HTTPError: An exception is raised on error.
     """
-    request = Request(url)
-    request.add_header("User-Agent", user_agent)
+    max_attempts = 5
+    base_delay = 1.5  # seconds
+    limiter = get_google_limiter()
 
-    # Add cookies from cookie jar to the request
-    # This makes the request look more like a real browser
-    cookie_jar.add_cookie_header(request)
+    attempt = 0
+    while True:
+        # Global pacing to avoid triggering 429 across the app
+        limiter.acquire()
 
-    if verify_ssl:
-        response = urlopen(request)
-    else:
-        context = ssl._create_unverified_context()
-        response = urlopen(request, context=context)
+        request = Request(url)
+        request.add_header("User-Agent", user_agent)
+        request.add_header(
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        )
+        request.add_header("Accept-Language", "en-US,en;q=0.9")
+        request.add_header("Referer", "https://www.google.com/")
 
-    # Extract new cookies from the response and store them
-    # This maintains session state across requests
-    cookie_jar.extract_cookies(response, request)
+        # Add cookies from cookie jar to the request
+        cookie_jar.add_cookie_header(request)
 
-    html = response.read()
-    response.close()
+        try:
+            if verify_ssl:
+                response = urlopen(request)
+            else:
+                context = ssl._create_unverified_context()
+                response = urlopen(request, context=context)
 
-    # Save cookies to file for persistence
-    # This allows cookies to be reused in future sessions
-    try:
-        cookie_jar.save()
-    except Exception:
-        pass
+            # Extract new cookies from the response and store them
+            cookie_jar.extract_cookies(response, request)
 
-    return html
+            html = response.read()
+            response.close()
+
+            # Save cookies to file for persistence
+            try:
+                cookie_jar.save()
+            except Exception:
+                pass
+
+            return html
+
+        except HTTPError as e:
+            if e.code == 429:
+                # Respect Retry-After if provided
+                retry_after = (
+                    e.headers.get("Retry-After") if hasattr(e, "headers") else None
+                )
+                if retry_after:
+                    try:
+                        delay = float(retry_after)
+                    except Exception:
+                        delay = None
+                else:
+                    delay = None
+
+                if delay is None:
+                    # Exponential backoff with jitter
+                    delay = base_delay * (2**attempt) + random.uniform(0.2, 0.8)
+
+                attempt += 1
+                if attempt >= max_attempts:
+                    logger.error(
+                        f"HTTP 429 Too Many Requests after {attempt} attempts; giving up."
+                    )
+                    raise
+
+                logger.warning(
+                    f"HTTP 429 received. Backing off for {delay:.2f}s (attempt {attempt}/{max_attempts})."
+                )
+                time.sleep(delay)
+                continue
+            else:
+                raise
 
 
 def filter_search_result(link: str, include_google_links: bool = False) -> str | None:
@@ -233,6 +288,25 @@ def search(
 
         # Parse the response and get every anchored URL.
         soup = BeautifulSoup(html, "html.parser")
+
+        # Detect soft block / JS challenge pages early and bail out.
+        page_text = soup.get_text(" ", strip=True).lower()
+        challenge_indicators = (
+            "/httpservice/retry/enablejs" in html.decode(errors="ignore").lower()
+            or "enable javascript" in page_text
+            or "our systems have detected unusual traffic" in page_text
+            or ("sorry" in page_text and "automated queries" in page_text)
+            or any(
+                a.get("href", "").startswith("/httpservice/retry/enablejs")
+                or "support.google.com/websearch" in a.get("href", "")
+                for a in soup.find_all("a")
+            )
+        )
+        if challenge_indicators:
+            logger.warning(
+                "Detected Google soft block/JS challenge; aborting cookie search to avoid lock-in."
+            )
+            raise SoftBlockError("Google soft block / JS challenge detected")
         try:
             anchors = soup.find(id="search").findAll("a")
         except AttributeError:
@@ -242,6 +316,7 @@ def search(
             anchors = soup.findAll("a")
 
         # Process every anchored URL.
+        valid_found_this_page = 0
         for a in anchors:
             try:  # Get the URL from the anchor tag.
                 link = a["href"]
@@ -261,11 +336,19 @@ def search(
                 continue
             hashes.add(h)
             results.append(link)
+            valid_found_this_page += 1
 
             # Increase the results counter. If reached the limit, stop.
             count += 1
             if count >= max_results:
                 return results
+
+        # If blocked or no valid results on the first page, stop early.
+        if start == 0 and valid_found_this_page == 0:
+            logger.warning(
+                "No valid results on first page; likely soft-blocked. Stopping pagination."
+            )
+            break
 
         # Prepare the URL for the next request. Update start for next page
         start += num
@@ -275,7 +358,12 @@ def search(
         else:
             url = GOOGLE_URL_NEXT_PAGE_NUM % vars()
 
-        # Sleep between requests.
-        time.sleep(pause)
+        # Sleep between requests. If pause is too small, use safer default with jitter.
+        if pause < 1.0:
+            base = 3.0
+            jitter = random.uniform(0.6, 1.8)
+            time.sleep(base + jitter)
+        else:
+            time.sleep(pause + random.uniform(0.1, 0.6))
     logger.info(f"After cookie_google search, the results are: {results}")
     return results

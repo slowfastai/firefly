@@ -41,6 +41,7 @@ if str(current_dir) not in sys.path:
     sys.path.insert(0, str(current_dir))
 
 from ._cookie_google_search import search as cookie_google_search
+from ._duckduckgo_search import search as duckduckgo_search
 from prompts.prompts_report import get_summarization_instruction
 
 # Initialize Global sync session

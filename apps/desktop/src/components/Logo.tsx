@@ -3,7 +3,7 @@ const Logo = () => {
     <div className="logo-mark" aria-label="Firefly wordmark">
       Firefly
     </div>
-  )
-}
+  );
+};
 
-export default Logo
+export default Logo;
