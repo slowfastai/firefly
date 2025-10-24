@@ -1,0 +1,34 @@
+name: Python Unit Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (minimal for unit tests)
+        run: |
+          python -m pip install --upgrade pip
+          # Install only what's needed for the unit tests and search module
+          pip install pytest requests beautifulsoup4 loguru
+
+      - name: Run unit tests
+        env:
+          # Ensure src is on the path, although pytest.ini in repo root sets this too
+          PYTHONPATH: apps/backend/src
+        run: |
+          pytest -q apps/backend/tests/unit
+
