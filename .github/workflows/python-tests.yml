@@ -19,11 +19,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies (minimal for unit tests)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Install only what's needed for the unit tests and search module
-          pip install pytest requests beautifulsoup4 loguru
+          # Base backend deps
+          pip install -r apps/backend/requirements.txt
+          pip install pytest
 
       - name: Run unit tests
         env:
@@ -31,4 +32,3 @@ jobs:
           PYTHONPATH: apps/backend/src
         run: |
           pytest -q apps/backend/tests/unit
-

@@ -1,4 +1,6 @@
+aiohttp
 openai
+crawl4ai
 tqdm
 nltk
 rank-bm25
