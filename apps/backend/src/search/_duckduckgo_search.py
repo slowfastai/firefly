@@ -179,28 +179,40 @@ def search(
     except Exception as e:
         logger.debug(f"DDG preflight GET failed (continuing): {e}")
 
-    r = session.post(DDG_HTML, headers=headers, data=params, timeout=timeout)
-    r.raise_for_status()
-    html = r.text
-    lowered = html.lower()
-    if (
-        ("captcha" in lowered)
-        or ("unusual traffic" in lowered)
-        or ("verify you are a human" in lowered)
-    ):
-        logger.warning("DuckDuckGo returned a page indicating possible rate limiting or bot check")
-        return []
+    def _fetch_and_parse(data_params) -> List[str]:
+        r_ = session.post(DDG_HTML, headers=headers, data=data_params, timeout=timeout)
+        r_.raise_for_status()
+        html_ = r_.text
+        lowered_ = html_.lower()
+        if (
+            ("captcha" in lowered_)
+            or ("unusual traffic" in lowered_)
+            or ("verify you are a human" in lowered_)
+        ):
+            logger.warning("DuckDuckGo returned a page indicating possible rate limiting or bot check")
+            return []
 
-    soup = BeautifulSoup(html, "html.parser")
-    results: List[str] = []
-    for a in soup.select("a.result__a"):
-        url = a.get("href")
-        title = a.get_text(" ", strip=True)
-        if url and title:
-            # results.append({"title": title, "url": url})  # TODO: add title to results?
-            results.append(url)
-        if len(results) >= max_results:
-            break
+        soup_ = BeautifulSoup(html_, "html.parser")
+        out: List[str] = []
+        for a in soup_.select("a.result__a"):
+            url = a.get("href")
+            title = a.get_text(" ", strip=True)
+            if url and title:
+                out.append(url)
+            if len(out) >= max_results:
+                break
+        return out
+
+    results: List[str] = _fetch_and_parse(params)
+
+    # Fallback: if no results and there are quotes, remove all quotes once
+    if not results and (('"' in processed) or ("'" in processed)):
+        relaxed = processed.replace('"', "").replace("'", "")
+        if relaxed != processed:
+            logger.info(f"DDG fallback: removing quotes -> {relaxed}")
+            params_relaxed = dict(params)
+            params_relaxed["q"] = relaxed
+            results = _fetch_and_parse(params_relaxed)
     # Gentle pause to avoid rate issues
     time.sleep(random.uniform(0.6, 1.2))
     logger.info(f"DuckDuckGo results: {results}")
