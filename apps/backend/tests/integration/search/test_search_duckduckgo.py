@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 
 DDG_HTML = "https://html.duckduckgo.com/html/"
 
+
 def search_ddg(query: str, max_results: int = 10, offset: int = 0):
     session = requests.Session()
     headers = {
@@ -33,7 +34,11 @@ def search_ddg(query: str, max_results: int = 10, offset: int = 0):
 
     # 3) Simple bot/blank-page detection to aid debugging
     lowered = html.lower()
-    if ("captcha" in lowered) or ("unusual traffic" in lowered) or ("verify you are a human" in lowered):
+    if (
+        ("captcha" in lowered)
+        or ("unusual traffic" in lowered)
+        or ("verify you are a human" in lowered)
+    ):
         # Return empty results while signaling a likely rate-limit/verification page
         return []
 
@@ -73,7 +78,6 @@ def search_ddg(query: str, max_results: int = 10, offset: int = 0):
     return results
 
 
-
 # print(search_ddg("Who is the best football player in the world?"))
 """
 [
@@ -90,4 +94,3 @@ def search_ddg(query: str, max_results: int = 10, offset: int = 0):
 """
 
 # print(search_ddg('"how the Sun formed" "nebular hypothesis" "gravitational collapse" solar system formation NASA'))
-
