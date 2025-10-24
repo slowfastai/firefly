@@ -24,6 +24,23 @@ def preprocess_duckduckgo_query(q: str) -> str:
         # 1) Remove wildcard prefix after `site:` (case-insensitive, allow optional whitespace)
         text = re.sub(r"(?i)(\bsite:\s*)\*\.", r"\1", q)
 
+        # 1.1) Drop positive filetype/html filters (usually overly restrictive)
+        # Keep negative forms (e.g., -filetype:html) to preserve user intent.
+        def _drop_positive_filetype_html(m: re.Match) -> str:
+            sign = m.group('sign') or ''
+            return m.group(0) if sign == '-' else ''
+
+        text = re.sub(
+            r"(?i)(?P<sign>-?)\b(?:filetype|ext)\s*:\s*(?:html|htm)\b",
+            _drop_positive_filetype_html,
+            text,
+        )
+
+        # Clean up leading/trailing stray boolean operators after removals
+        text = re.sub(r"(?i)^\s*(?:OR|AND)\s+", "", text)
+        text = re.sub(r"(?i)\s+(?:OR|AND)\s*$", "", text)
+        text = re.sub(r"(?i)\b(?:OR|AND)\s+(?:OR|AND)\b", " OR ", text)
+
         # 2) Find all site: filters and drop redundant positives where a parent domain exists
         site_pat = re.compile(r"(?i)(?<!\w)(?P<neg>-?)site:\s*(?P<value>[^\s]+)")
 

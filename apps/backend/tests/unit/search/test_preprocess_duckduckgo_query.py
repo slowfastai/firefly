@@ -58,3 +58,40 @@ def test_no_site_filters_returns_original():
     out = preprocess_duckduckgo_query(q)
     assert out == q
 
+
+def test_remove_positive_filetype_html_and_ext_htm():
+    q = "foo filetype:html bar ext:htm baz"
+    out = preprocess_duckduckgo_query(q)
+    assert "filetype:html" not in out.lower()
+    assert "ext:htm" not in out.lower()
+    # Core terms remain
+    assert "foo" in out and "bar" in out and "baz" in out
+
+
+def test_preserve_negative_filetype_html():
+    q = "-filetype:html site:example.com"
+    out = preprocess_duckduckgo_query(q)
+    assert "-filetype:html" in out.lower()
+    assert "site:example.com" in out.lower()
+
+
+def test_boolean_cleanup_after_removal():
+    q = "OR filetype:html foo AND"
+    out = preprocess_duckduckgo_query(q)
+    # After removing positive filetype:html, stray OR/AND at edges are cleaned
+    assert out == "foo"
+
+
+def test_keep_other_filetypes():
+    q = "filetype:pdf site:example.com"
+    out = preprocess_duckduckgo_query(q)
+    assert "filetype:pdf" in out.lower()
+    assert "site:example.com" in out.lower()
+
+
+def test_ext_variants_case_insensitive():
+    q = "EXT:HTML FiLeTyPe:HtM keep"
+    out = preprocess_duckduckgo_query(q)
+    assert "ext:html" not in out.lower()
+    assert "filetype:htm" not in out.lower()
+    assert "keep" in out
