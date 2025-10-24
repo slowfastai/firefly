@@ -6,7 +6,7 @@ DDG_HTML = "https://html.duckduckgo.com/html/"
 def search_ddg(query: str, max_results: int = 10, offset: int = 0):
     session = requests.Session()
     headers = {
-        # 更“真实”的 UA；有些返回会对 UA 比较敏感
+        # A more realistic UA; some responses are UA-sensitive
         "User-Agent": (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_6) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -17,13 +17,13 @@ def search_ddg(query: str, max_results: int = 10, offset: int = 0):
         "Referer": DDG_HTML,
     }
 
-    # 1) 先 GET 一次拿到 cookie（有时直接 POST 会被空页/风控）
+    # 1) Initial GET to obtain cookies (direct POST may yield empty/blocked pages)
     session.get(DDG_HTML, headers=headers, timeout=20)
 
-    # 2) 用 POST 提交查询（DDG HTML 端支持 POST），带上偏移量 s（分页）
+    # 2) Submit the query via POST (HTML endpoint supports POST); include s for pagination
     data = {
         "q": query,
-        "s": str(offset),  # 分页偏移：0, 30, 60...
+        "s": str(offset),  # page offset: 0, 30, 60...
         "ia": "web",
     }
     r = session.post(DDG_HTML, headers=headers, data=data, timeout=20)
@@ -31,18 +31,18 @@ def search_ddg(query: str, max_results: int = 10, offset: int = 0):
 
     html = r.text
 
-    # 3) 简单的风控/空页检测，方便你定位问题
+    # 3) Simple bot/blank-page detection to aid debugging
     lowered = html.lower()
     if ("captcha" in lowered) or ("unusual traffic" in lowered) or ("verify you are a human" in lowered):
-        # 返回空数组，但给出可定位信息
+        # Return empty results while signaling a likely rate-limit/verification page
         return []
 
     soup = BeautifulSoup(html, "html.parser")
 
     results = []
 
-    # 4) 更鲁邦的选择器：先按常见类名拿；拿不到再退化
-    # 常规（html 端）结果：div.result > a.result__a
+    # 4) More robust selection: prefer common class names; fall back if needed
+    # Typical (HTML endpoint) results: div.result > a.result__a
     for a in soup.select("div.result a.result__a"):
         url = a.get("href")
         title = a.get_text(" ", strip=True)
@@ -51,29 +51,30 @@ def search_ddg(query: str, max_results: int = 10, offset: int = 0):
         if len(results) >= max_results:
             break
 
-    # 5) 退化选择器（如果 DDG 改了类名，仍有机会抓到）
+    # 5) Fallback selector (if DDG changes class names, still try to extract)
     if not results:
         for a in soup.select("#links a[href]"):
-            # 过滤掉内链/跳转锚点
+            # Filter internal links/anchors
             href = a.get("href")
             title = a.get_text(" ", strip=True)
             if not href or not title:
                 continue
             if href.startswith("/") or href.startswith("#"):
                 continue
-            # 避免抓导航/无标题链接
+            # Skip nav or title-less links
             if len(title) < 2:
                 continue
             results.append({"title": title, "url": href})
             if len(results) >= max_results:
                 break
 
-    # 6) 随机延时，降低被限流概率
+    # 6) Random delay to reduce rate-limit likelihood
     time.sleep(random.uniform(0.6, 1.2))
     return results
 
 
-print(search_ddg("Who is the best football player in the world?"))
+
+# print(search_ddg("Who is the best football player in the world?"))
 """
 [
     {
@@ -88,4 +89,5 @@ print(search_ddg("Who is the best football player in the world?"))
 ]
 """
 
-print(search_ddg('"how the Sun formed" "nebular hypothesis" "gravitational collapse" solar system formation NASA'))
+# print(search_ddg('"how the Sun formed" "nebular hypothesis" "gravitational collapse" solar system formation NASA'))
+
