@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 
 type IconName = "search" | "compass" | "lightbulb" | "globe" | "link";
 
-type SearchEngine = "auto" | "google" | "duckduckgo" | "bing";
+type SearchEngine = "auto" | "google" | "duckduckgo" | "bing" | "startpage";
 type ModelId =
   | "best"
   | "sonar"
@@ -44,6 +44,11 @@ const engineConfig: Record<
   duckduckgo: {
     icon: "globe",
     label: "DuckDuckGo",
+    description: "",
+  },
+  startpage: {
+    icon: "globe",
+    label: "Startpage",
     description: "",
   },
   bing: {

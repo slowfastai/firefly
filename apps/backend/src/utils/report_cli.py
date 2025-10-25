@@ -167,6 +167,7 @@ def parse_args():
             # "serper",
             "cookie_google",
             "duckduckgo",
+            "startpage",
             # "cookie_bing",
             # "cookie_duckduckgo",
             # "cookie_baidu",
