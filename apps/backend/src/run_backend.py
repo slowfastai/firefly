@@ -24,6 +24,7 @@ from search.search_engine import (
     fetch_page_content_async,
     cookie_google_search,
     duckduckgo_search,
+    startpage_search,
     google_serper_search,
     ERROR_INDICATORS,
     INVALID_SEARCH_QUERY,
@@ -691,6 +692,8 @@ async def handle_search_query_response(context: ResponseContext):
                 )
             elif context.args.search_engine == "duckduckgo":
                 search_result_urls = duckduckgo_search(search_query, context.user_agent)
+            elif context.args.search_engine == "startpage":
+                search_result_urls = startpage_search(search_query, context.user_agent)
             else:
                 error_message = f"Invalid search engine: {context.args.search_engine}, not supported yet."
                 logger.error(error_message)
@@ -1108,6 +1111,10 @@ async def generate_deep_web_explorer(
                         )
                     elif args.search_engine == "duckduckgo":
                         search_result_urls = duckduckgo_search(
+                            new_search_query, user_agent
+                        )
+                    elif args.search_engine == "startpage":
+                        search_result_urls = startpage_search(
                             new_search_query, user_agent
                         )
                     else:

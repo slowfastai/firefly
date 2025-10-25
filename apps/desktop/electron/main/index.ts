@@ -179,6 +179,7 @@ ipcMain.handle(
       if (val === "auto") return undefined; // Let backend use its default (cookie_google + fallbacks)
       if (val === "google") return "cookie_google";
       if (val === "duckduckgo") return "duckduckgo";
+      if (val === "startpage") return "startpage";
       if (val === "bing") return "duckduckgo"; // Bing not implemented yet; temporarily map to DDG
       return undefined;
     };
