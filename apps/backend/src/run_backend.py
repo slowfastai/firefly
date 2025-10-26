@@ -25,6 +25,7 @@ from search.search_engine import (
     cookie_google_search,
     duckduckgo_search,
     startpage_search,
+    brave_search,
     google_serper_search,
     ERROR_INDICATORS,
     INVALID_SEARCH_QUERY,
@@ -694,6 +695,8 @@ async def handle_search_query_response(context: ResponseContext):
                 search_result_urls = duckduckgo_search(search_query, context.user_agent)
             elif context.args.search_engine == "startpage":
                 search_result_urls = startpage_search(search_query, context.user_agent)
+            elif context.args.search_engine == "brave":
+                search_result_urls = brave_search(search_query, context.user_agent)
             else:
                 error_message = f"Invalid search engine: {context.args.search_engine}, not supported yet."
                 logger.error(error_message)
