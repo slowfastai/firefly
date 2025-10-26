@@ -180,6 +180,7 @@ ipcMain.handle(
       if (val === "google") return "cookie_google";
       if (val === "duckduckgo") return "duckduckgo";
       if (val === "startpage") return "startpage";
+      if (val === "brave") return "brave";
       if (val === "bing") return "duckduckgo"; // Bing not implemented yet; temporarily map to DDG
       return undefined;
     };
