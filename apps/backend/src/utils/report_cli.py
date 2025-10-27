@@ -169,6 +169,7 @@ def parse_args():
             "duckduckgo",
             "startpage",
             "brave",
+            "mojeek",
             "bing",
             "yandex",
             "sogou",

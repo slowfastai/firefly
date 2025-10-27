@@ -26,6 +26,7 @@ from search.search_engine import (
     duckduckgo_search,
     startpage_search,
     brave_search,
+    mojeek_search,
     bing_search,
     yandex_search,
     sogou_search,
@@ -701,6 +702,8 @@ async def handle_search_query_response(context: ResponseContext):
                 search_result_urls = startpage_search(search_query, context.user_agent)
             elif context.args.search_engine == "brave":
                 search_result_urls = brave_search(search_query, context.user_agent)
+            elif context.args.search_engine == "mojeek":
+                search_result_urls = mojeek_search(search_query, context.user_agent)
             elif context.args.search_engine == "bing":
                 search_result_urls = bing_search(search_query, context.user_agent)
             elif context.args.search_engine == "yandex":
@@ -1134,6 +1137,8 @@ async def generate_deep_web_explorer(
                         )
                     elif args.search_engine == "bing":
                         search_result_urls = bing_search(new_search_query, user_agent)
+                    elif args.search_engine == "mojeek":
+                        search_result_urls = mojeek_search(new_search_query, user_agent)
                     elif args.search_engine == "yandex":
                         search_result_urls = yandex_search(new_search_query, user_agent)
                     elif args.search_engine == "sogou":

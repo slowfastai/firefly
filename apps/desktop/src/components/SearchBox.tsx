@@ -9,6 +9,7 @@ type SearchEngine =
   | "bing"
   | "startpage"
   | "brave"
+  | "mojeek"
   | "yandex"
   | "sogou"
   | "qwant";
@@ -63,6 +64,11 @@ const engineConfig: Record<
   brave: {
     icon: "globe",
     label: "Brave",
+    description: "",
+  },
+  mojeek: {
+    icon: "globe",
+    label: "Mojeek",
     description: "",
   },
   bing: {

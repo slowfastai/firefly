@@ -44,6 +44,7 @@ from ._cookie_google_search import search as cookie_google_search
 from ._duckduckgo_search import search as duckduckgo_search
 from ._startpage_search import search as startpage_search
 from ._brave_search import search as brave_search
+from ._mojeek_search import search as mojeek_search
 from ._yandex_search import search as yandex_search
 from ._sogou_search import search as sogou_search
 from ._qwant_search import search as qwant_search
