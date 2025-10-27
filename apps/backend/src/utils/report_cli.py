@@ -170,6 +170,7 @@ def parse_args():
             "startpage",
             "brave",
             "bing",
+            "yandex",
             # "cookie_bing",
             # "cookie_duckduckgo",
             # "cookie_baidu",

@@ -8,7 +8,8 @@ type SearchEngine =
   | "duckduckgo"
   | "bing"
   | "startpage"
-  | "brave";
+  | "brave"
+  | "yandex";
 type ModelId =
   | "best"
   | "sonar"
@@ -65,6 +66,11 @@ const engineConfig: Record<
   bing: {
     icon: "globe",
     label: "Bing Search",
+    description: "",
+  },
+  yandex: {
+    icon: "globe",
+    label: "Yandex",
     description: "",
   },
 };
