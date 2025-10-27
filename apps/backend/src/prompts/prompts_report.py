@@ -560,7 +560,7 @@ Now you should analyze each web page and find helpful information based on the c
 
 
 def get_query_clarification_instruction(question):
-    """Adapted from OpenAI’s Deep Research guide: https://platform.openai.com/docs/guides/deep-research"""
+    """Adapted from OpenAI's Deep Research guide: https://platform.openai.com/docs/guides/deep-research"""
     return f"""
 You are talking to a user who is asking for a research task to be conducted.
 The user's question is:
