@@ -183,6 +183,7 @@ ipcMain.handle(
       if (val === "brave") return "brave";
       if (val === "bing") return "bing";
       if (val === "yandex") return "yandex";
+      if (val === "sogou") return "sogou";
       return undefined;
     };
 

@@ -9,7 +9,8 @@ type SearchEngine =
   | "bing"
   | "startpage"
   | "brave"
-  | "yandex";
+  | "yandex"
+  | "sogou";
 type ModelId =
   | "best"
   | "sonar"
@@ -72,6 +73,11 @@ const engineConfig: Record<
     icon: "globe",
     label: "Yandex",
     description: "",
+  },
+  sogou: {
+    icon: "globe",
+    label: "Sogou 搜狗",
+    description: "China-focused search",
   },
 };
 
