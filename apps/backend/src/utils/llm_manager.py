@@ -136,6 +136,17 @@ class LLMClient:
                         f"[{self.__class__.__name__}] Model: {self.model_name} - Encountered error (attempt {attempt + 1}/{self.max_retries})... Error: {e}"
                     )
 
+                # Lightweight hint logging for suspected rate limit/backpressure
+                try:
+                    emsg = (str(e) or "").lower()
+                    is_rl = ("rate limit" in emsg) or ("429" in emsg) or ("choices" in emsg and "attribute" in emsg)
+                    if is_rl:
+                        logger.info(
+                            f"[{self.__class__.__name__}] Likely rate-limit/backpressure; will retry ({attempt + 1}/{self.max_retries})."
+                        )
+                except Exception:
+                    pass
+
                 # Retry logic for all error types (except 503)
                 if attempt < self.max_retries - 1:
                     wait_time = self.retry_delay * (attempt + 1)
@@ -214,9 +225,19 @@ class LLMClient:
             messages=message_list,
             **kwargs,
         )
+        
+        # Tolerate non-standard responses from some OpenAI-compatible providers, maybe due to OpenAI-compatible provider limit rate
+        try:
+            text = response.choices[0].message.content.strip()
+            usage = getattr(response, "usage", "")
+        except Exception as parse_err:
+            logger.error(f"[{self.__class__.__name__}] Failed to parse response: {parse_err}, maybe due to OpenAI-compatible provider limit rate")
+            text = ""
+            usage = ""
+
         return LLMResponse(
-            response_text=(response.choices[0].message.content or "").strip(),
-            response_metadata={"usage": getattr(response, "usage", "")},
+            response_text=text,
+            response_metadata={"usage": usage},
             actual_queried_message_list=message_list,
         )
 
