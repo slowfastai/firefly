@@ -182,6 +182,7 @@ ipcMain.handle(
       if (val === "startpage") return "startpage";
       if (val === "brave") return "brave";
       if (val === "bing") return "bing";
+      if (val === "yandex") return "yandex";
       return undefined;
     };
 
