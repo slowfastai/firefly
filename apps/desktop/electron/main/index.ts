@@ -181,7 +181,7 @@ ipcMain.handle(
       if (val === "duckduckgo") return "duckduckgo";
       if (val === "startpage") return "startpage";
       if (val === "brave") return "brave";
-      if (val === "bing") return "duckduckgo"; // Bing not implemented yet; temporarily map to DDG
+      if (val === "bing") return "bing";
       return undefined;
     };
 

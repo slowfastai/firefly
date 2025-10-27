@@ -44,6 +44,7 @@ from ._cookie_google_search import search as cookie_google_search
 from ._duckduckgo_search import search as duckduckgo_search
 from ._startpage_search import search as startpage_search
 from ._brave_search import search as brave_search
+from ._bing_search import search as bing_search
 from prompts.prompts_report import get_summarization_instruction
 
 # Initialize Global sync session
