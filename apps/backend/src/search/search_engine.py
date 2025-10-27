@@ -46,6 +46,7 @@ from ._startpage_search import search as startpage_search
 from ._brave_search import search as brave_search
 from ._yandex_search import search as yandex_search
 from ._sogou_search import search as sogou_search
+from ._qwant_search import search as qwant_search
 from ._bing_search import search as bing_search
 from prompts.prompts_report import get_summarization_instruction
 

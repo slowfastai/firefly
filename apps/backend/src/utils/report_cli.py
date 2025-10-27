@@ -172,6 +172,7 @@ def parse_args():
             "bing",
             "yandex",
             "sogou",
+            "qwant",
             # "cookie_bing",
             # "cookie_duckduckgo",
             # "cookie_baidu",
