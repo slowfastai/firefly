@@ -181,6 +181,7 @@ ipcMain.handle(
       if (val === "duckduckgo") return "duckduckgo";
       if (val === "startpage") return "startpage";
       if (val === "brave") return "brave";
+      if (val === "mojeek") return "mojeek";
       if (val === "bing") return "bing";
       if (val === "yandex") return "yandex";
       if (val === "sogou") return "sogou";
