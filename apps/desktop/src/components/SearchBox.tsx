@@ -10,6 +10,7 @@ type SearchEngine =
   | "startpage"
   | "brave"
   | "mojeek"
+  | "naver"
   | "yandex"
   | "sogou"
   | "qwant";
@@ -70,6 +71,11 @@ const engineConfig: Record<
     icon: "globe",
     label: "Mojeek",
     description: "",
+  },
+  naver: {
+    icon: "globe",
+    label: "Naver",
+    description: "Korean search engine",
   },
   bing: {
     icon: "globe",

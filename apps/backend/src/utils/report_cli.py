@@ -170,6 +170,7 @@ def parse_args():
             "startpage",
             "brave",
             "mojeek",
+            "naver",
             "bing",
             "yandex",
             "sogou",
