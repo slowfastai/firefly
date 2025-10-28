@@ -13,7 +13,8 @@ type SearchEngine =
   | "naver"
   | "yandex"
   | "sogou"
-  | "qwant";
+  | "qwant"
+  | "leta";
 type ModelId =
   | "best"
   | "sonar"
@@ -96,6 +97,11 @@ const engineConfig: Record<
     icon: "globe",
     label: "Qwant",
     description: "",
+  },
+  leta: {
+    icon: "globe",
+    label: "Leta",
+    description: "Mullvad privacy-preserving meta-search",
   },
 };
 
