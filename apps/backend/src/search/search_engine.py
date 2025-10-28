@@ -51,6 +51,7 @@ from ._yandex_search import search as yandex_search
 from ._sogou_search import search as sogou_search
 from ._qwant_search import search as qwant_search
 from ._bing_search import search as bing_search
+from ._leta_search import search as leta_search
 from prompts.prompts_report import get_summarization_instruction
 
 # Initialize Global sync session

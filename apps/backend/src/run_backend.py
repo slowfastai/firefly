@@ -32,6 +32,7 @@ from search.search_engine import (
     yandex_search,
     sogou_search,
     qwant_search,
+    leta_search,
     google_serper_search,
     ERROR_INDICATORS,
     INVALID_SEARCH_QUERY,
@@ -715,6 +716,8 @@ async def handle_search_query_response(context: ResponseContext):
                 search_result_urls = sogou_search(search_query, context.user_agent)
             elif context.args.search_engine == "qwant":
                 search_result_urls = qwant_search(search_query, context.user_agent)
+            elif context.args.search_engine == "leta":
+                search_result_urls = leta_search(search_query, context.user_agent)
             else:
                 error_message = f"Invalid search engine: {context.args.search_engine}, not supported yet."
                 logger.error(error_message)
@@ -1150,6 +1153,8 @@ async def generate_deep_web_explorer(
                         search_result_urls = sogou_search(new_search_query, user_agent)
                     elif args.search_engine == "qwant":
                         search_result_urls = qwant_search(new_search_query, user_agent)
+                    elif args.search_engine == "leta":
+                        search_result_urls = leta_search(new_search_query, user_agent)
                     else:
                         logger.error(f"Invalid search engine: {args.search_engine}")
                         search_result_urls = []

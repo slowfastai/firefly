@@ -187,6 +187,7 @@ ipcMain.handle(
       if (val === "yandex") return "yandex";
       if (val === "sogou") return "sogou";
       if (val === "qwant") return "qwant";
+      if (val === "leta") return "leta";
       return undefined;
     };
 
